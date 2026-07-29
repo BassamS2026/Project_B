@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+    <h2>{{ title }}</h2>
+    <form method="POST">
+        <label>Amount ($)</label>
+        <input type="number" step="0.01" name="amount" required>
+
+        <label>Description</label>
+        <input type="text" id="description" name="description" placeholder="e.g., Uber ride home" required>
+        <button type="button" id="ai-btn" class="btn-secondary">✨ Auto-Categorize with AI</button>
+
+        <label>Category</label>
+        <select name="category_id" id="category_select">
+            <option value="">Select Category</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Date</label>
+        <input type="date" name="expense_date" required>
+
+        <button type="submit" class="btn-primary">Save Expense</button>
+    </form>
+</div>
+
+<script>
+document.getElementById('ai-btn').addEventListener('click', async () => {
+    const desc = document.getElementById('description').value;
+    if (!desc) return alert('Please enter a description first.');
+    
+    const res = await fetch('/api/ai-suggest-category', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ description: desc })
+    });
+    
+    const data = await res.json();
+    if (data.suggested_category_id) {
+        document.getElementById('category_select').value = data.suggested_category_id;
+    } else {
+        alert('Could not match a category.');
+    }
+});
+</script>
+{% endblock %}
